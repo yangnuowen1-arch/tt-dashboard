@@ -5,7 +5,11 @@ import React, { useState } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 
-export default function UserDropdown() {
+type UserDropdownProps = {
+  variant?: "light" | "dark";
+};
+
+export default function UserDropdown({ variant = "light" }: UserDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
 
 function toggleDropdown(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
@@ -16,27 +20,40 @@ function toggleDropdown(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
   function closeDropdown() {
     setIsOpen(false);
   }
+  const isDark = variant === "dark";
+
   return (
     <div className="relative">
       <button
-        onClick={toggleDropdown} 
-        className="flex items-center text-gray-700 dark:text-gray-400 dropdown-toggle"
+        onClick={toggleDropdown}
+        className={`dropdown-toggle flex items-center ${
+          isDark
+            ? "text-white/90"
+            : "text-gray-700 dark:text-gray-400"
+        }`}
       >
-        <span className="mr-3 overflow-hidden rounded-full h-11 w-11">
+        <span
+          className={`mr-2 overflow-hidden rounded-full sm:mr-3 ${isDark ? "h-9 w-9" : "h-11 w-11"}`}
+        >
           <Image
             width={44}
             height={44}
             src="/images/user/owner.jpg"
             alt="User"
+            className={isDark ? "h-9 w-9 object-cover" : ""}
           />
         </span>
 
-        <span className="block mr-1 font-medium text-theme-sm">Musharof</span>
+        <span
+          className={`mr-1 hidden font-medium sm:block ${isDark ? "text-sm" : "text-theme-sm"}`}
+        >
+          Musharof
+        </span>
 
         <svg
-          className={`stroke-gray-500 dark:stroke-gray-400 transition-transform duration-200 ${
-            isOpen ? "rotate-180" : ""
-          }`}
+          className={`transition-transform duration-200 ${
+            isDark ? "stroke-white/60" : "stroke-gray-500 dark:stroke-gray-400"
+          } ${isOpen ? "rotate-180" : ""}`}
           width="18"
           height="20"
           viewBox="0 0 18 20"

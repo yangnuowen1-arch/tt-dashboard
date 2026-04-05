@@ -1,19 +1,19 @@
 import type { Metadata } from "next";
 import { AdsManageToolbar } from "@/components/xmp/AdsManageToolbar";
 import { PromotionTableCard } from "@/components/xmp/PromotionTableCard";
-import { AccountsTable } from "@/components/xmp/tables/AccountsTable";
+import { CampaignsTable } from "@/components/xmp/tables/CampaignsTable";
 import React from "react";
 
 export const metadata: Metadata = {
-  title: "广告账户 | TT 投放台",
-  description: "TikTok 广告账户管理（示例布局）",
+  title: "推广系列 | TT 投放台",
+  description: "TikTok 推广系列管理（示例布局）",
 };
 
-export default function AdAccountsPage() {
+export default function CampaignsPage() {
   return (
     <PromotionTableCard>
-      <AdsManageToolbar title="广告账户" />
-      <AccountsTable />
+      <AdsManageToolbar title="推广系列" />
+      <CampaignsTable />
     </PromotionTableCard>
   );
 }
