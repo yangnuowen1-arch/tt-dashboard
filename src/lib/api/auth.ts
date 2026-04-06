@@ -1,66 +1,33 @@
-// API 配置
-const API_BASE_URL = 'http://localhost:3001';
+import { api } from "./client";
 
-// API 请求封装
-export async function apiRequest<T>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<{ success: boolean; data: T | null; message: string }> {
-  const url = `${API_BASE_URL}${endpoint}`;
+// ─── 类型 ───────────────────────────────────────────────────
 
-  const defaultHeaders: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
+export type AuthUser = {
+  id: number;
+  email: string;
+  username: string;
+  role: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
 
-  // 如果有 token，添加到请求头
-  const token = localStorage.getItem('token');
-  if (token) {
-    defaultHeaders['Authorization'] = `Bearer ${token}`;
-  }
-
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      ...defaultHeaders,
-      ...options.headers,
-    },
-  });
-
-  const data = await response.json();
-  return data;
-}
+// ─── API ────────────────────────────────────────────────────
 
 // 登录接口
-export async function loginApi(email: string, password: string) {
-  return apiRequest<{
-    token: string;
-    user: {
-      id: number;
-      email: string;
-      username: string;
-      role: string;
-      isActive: boolean;
-      createdAt: string;
-      updatedAt: string;
-    };
-  }>('/auth/login', {
-    method: 'POST',
-    body: JSON.stringify({ email, password }),
-  });
+export function loginApi(email: string, password: string) {
+  return api.post<{ token: string; user: AuthUser }>(
+    "/auth/login",
+    { email, password },
+    { skipAuth: true }
+  );
 }
 
 // 注册接口
-export async function registerApi(email: string, password: string, username: string) {
-  return apiRequest<{
-    id: number;
-    email: string;
-    username: string;
-    role: string;
-    isActive: boolean;
-    createdAt: string;
-    updatedAt: string;
-  }>('/auth/register', {
-    method: 'POST',
-    body: JSON.stringify({ email, password, username }),
-  });
+export function registerApi(email: string, password: string, username: string) {
+  return api.post<AuthUser>(
+    "/auth/register",
+    { email, password, username },
+    { skipAuth: true }
+  );
 }

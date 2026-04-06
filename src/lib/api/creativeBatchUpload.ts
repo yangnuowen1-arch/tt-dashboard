@@ -1,7 +1,11 @@
 /**
- * 批量上传 / 发布 API 占位：接入后端时实现下列方法即可与前端闭环。
- * 默认走 Mock（由 hook 内判断 env）。
+ * 批量上传 / 发布 API
+ * 通过 src/lib/api/client.ts 统一处理 base URL、鉴权、超时、重试。
  */
+
+import { api } from "./client";
+
+// ─── 类型 ───────────────────────────────────────────────────
 
 export type BatchPresignItem = {
   clientItemId: string;
@@ -26,29 +30,36 @@ export type PublishPayload = {
   coverUrl?: string;
 };
 
-/** Step1：批量申请预签名 URL（示例签名路径，后端替换） */
-export async function requestBatchPresign(
-  _items: BatchPresignItem[]
-): Promise<BatchPresignResult[]> {
-  const res = await fetch("/api/creatives/batch-presign", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ items: _items }),
-  });
-  if (!res.ok) {
-    const t = await res.text();
-    throw new Error(t || `presign failed: ${res.status}`);
-  }
-  return (await res.json()) as BatchPresignResult[];
+// ─── API ────────────────────────────────────────────────────
+
+/** Step1：批量申请预签名 URL */
+export function requestBatchPresign(items: BatchPresignItem[]) {
+  return api.post<BatchPresignResult[]>("/api/creatives/batch-presign", { items });
 }
 
-/** 直传 S3 / OSS */
-export async function putToSignedUrl(
+/** Step2：通知后端「对象已落地」，触发入队处理 */
+export function notifyUploadComplete(payload: {
+  jobId: string;
+  clientItemId: string;
+  assetUrl: string;
+}) {
+  return api.post<void>("/api/creatives/upload-complete", payload);
+}
+
+/** Step3：发布到广告账户 / 素材库 */
+export function publishCreative(body: PublishPayload) {
+  return api.post<{ publishedId: string }>("/api/creatives/publish", body);
+}
+
+// ─── 直传（XHR，需要上传进度回调） ─────────────────────────────
+
+/** 直传 S3 / OSS，使用 XHR 以支持 onProgress */
+export function putToSignedUrl(
   uploadUrl: string,
   file: File,
   onProgress?: (pct: number) => void
 ): Promise<void> {
-  await new Promise<void>((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open("PUT", uploadUrl);
     xhr.upload.onprogress = (evt) => {
@@ -62,35 +73,4 @@ export async function putToSignedUrl(
     xhr.onerror = () => reject(new Error("网络错误"));
     xhr.send(file);
   });
-}
-
-/** Step2：通知后端「对象已落地」，触发入队修复 */
-export async function notifyUploadComplete(_payload: {
-  jobId: string;
-  clientItemId: string;
-  assetUrl: string;
-}): Promise<void> {
-  const res = await fetch("/api/creatives/upload-complete", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(_payload),
-  });
-  if (!res.ok) {
-    const t = await res.text();
-    throw new Error(t || `upload-complete failed: ${res.status}`);
-  }
-}
-
-/** 发布到广告账户 / 素材库（示例） */
-export async function publishCreative(_body: PublishPayload): Promise<{ publishedId: string }> {
-  const res = await fetch("/api/creatives/publish", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(_body),
-  });
-  if (!res.ok) {
-    const t = await res.text();
-    throw new Error(t || `publish failed: ${res.status}`);
-  }
-  return (await res.json()) as { publishedId: string };
 }

@@ -25,19 +25,14 @@ export default function SignInForm() {
 
     try {
       const result = await loginApi(email, password);
-
-      if (result.success) {
-        // 保存 token 到 localStorage
-        localStorage.setItem("token", result.data!.token);
-        // 保存用户信息
-        localStorage.setItem("user", JSON.stringify(result.data!.user));
-        // 跳转到首页
-        router.push("/");
-      } else {
-        setError(result.message);
-      }
-    } catch {
-      setError("登录失败，请稍后重试");
+      // 保存 token 到 localStorage
+      localStorage.setItem("token", result.token);
+      // 保存用户信息
+      localStorage.setItem("user", JSON.stringify(result.user));
+      // 跳转到首页
+      router.push("/");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "登录失败，请稍后重试");
     } finally {
       setLoading(false);
     }

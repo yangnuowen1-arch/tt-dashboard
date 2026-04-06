@@ -30,16 +30,11 @@ export default function SignUpForm() {
     setLoading(true);
 
     try {
-      const result = await registerApi(email, password, username);
-
-      if (result.success) {
-        // 注册成功，跳转到登录页
-        router.push("/signin");
-      } else {
-        setError(result.message);
-      }
-    } catch {
-      setError("注册失败，请稍后重试");
+      await registerApi(email, password, username);
+      // 注册成功，跳转到登录页
+      router.push("/signin");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "注册失败，请稍后重试");
     } finally {
       setLoading(false);
     }
